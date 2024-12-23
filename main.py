@@ -1,5 +1,5 @@
 from wake_word_detection import detect_wake_word
-from recognize_speech import recognize_speech
+from recognize_speech_mod import recognize_speech
 from service import get_response
 from text_to_speech import speak
 
