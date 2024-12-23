@@ -125,13 +125,12 @@ def on_close(ws, close_status_code, close_msg):
     print("Close message:", close_msg)
 
 
-# 收到websocket连接建立的处理
-def on_open(ws):
+def on_open(ws, wsParam):  # 将 wsParam 作为参数传递
     def run(*args):
         d = {"common": wsParam.CommonArgs,
              "business": wsParam.BusinessArgs,
              "data": wsParam.Data,
-             }
+            }
         d = json.dumps(d)
         print("------>开始发送文本数据")
         ws.send(d)
@@ -148,15 +147,17 @@ def pcm_to_wav(pcm_file, wav_file, sample_rate=44100, bit_depth=16):
     # Write to WAV file
     write_wav(wav_file, sample_rate, pcm_data)
 
-if __name__ == "__main__":
-    # 测试时候在此处正确填写相关信息即可运行
-    wsParam = Ws_Param(APPID='8c857de9', APISecret='OTNjZmU5YmQ1ZGE0ODU0NWRjZGJmMDQ0',
-                       APIKey='64b8ed5b1101a8d0139b042829768d17',
-                       Text="这是一个语音合成示例")
+def speak(text):
+    # 传入的 text 会成为 Ws_Param 中的 Text
+    wsParam = Ws_Param(APPID=os.getenv("XUNFEI_APP_ID"), 
+                       APISecret=os.getenv("XUNFEI_SPEECH_API_SECRET"),
+                       APIKey=os.getenv("XUNFEI_SPEECH_API_KEY"),
+                       Text=text)  # 将 text 传递给 Ws_Param
+
     websocket.enableTrace(False)
     wsUrl = wsParam.create_url()
     ws = websocket.WebSocketApp(wsUrl, on_message=on_message, on_error=on_error, on_close=on_close)
-    ws.on_open = on_open
+    ws.on_open = lambda ws: on_open(ws, wsParam)  # 将 wsParam 传给 on_open
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     # Initialize pygame mixer
@@ -177,3 +178,6 @@ if __name__ == "__main__":
 
     # Remove the temporary file
     os.remove('./demo.pcm')
+
+if __name__ == "__main__":
+    speak("这是一个语言合成示例")  # 传入希望合成的文本
