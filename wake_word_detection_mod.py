@@ -95,6 +95,7 @@ if __name__ == '__main__':
     logging.basicConfig()
 
     app_id = os.getenv('XUNFEI_APP_ID')
+    print(app_id)
     api_key = os.getenv('XUNFEI_API_KEY')
     # 先以音频文件为例
     file_path = r"./test_1.pcm"
