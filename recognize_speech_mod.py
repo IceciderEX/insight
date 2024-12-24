@@ -10,7 +10,7 @@ from urllib.parse import quote
 import logging
 import pyaudio
 
-class Client():
+class Client:
     def __init__(self):
         base_url = "ws://rtasr.xfyun.cn/v1/ws"
         ts = str(int(time.time()))
@@ -28,7 +28,8 @@ class Client():
 
         self.ws = create_connection(base_url + "?appid=" + app_id + "&ts=" + ts + "&signa=" + quote(signa))
         self.trecv = threading.Thread(target=self.recv)
-        self.buffer = ""  # 用于拼接识别结果的缓冲区
+        self.full_transcription = []  # 存储完整转录结果
+        self.is_recording = True  # 控制录音流是否继续
         self.trecv.start()
 
     def send_audio_stream(self):
@@ -41,12 +42,12 @@ class Client():
                         frames_per_buffer=1280)
 
         try:
-            while True:
+            while self.is_recording:
                 audio_data = stream.read(1280, exception_on_overflow=False)
                 self.ws.send(audio_data)
                 time.sleep(0.04)
         except KeyboardInterrupt:
-            print("停止音频传输。")
+            print("录音停止。")
         finally:
             stream.stop_stream()
             stream.close()
@@ -54,6 +55,7 @@ class Client():
 
         self.ws.send(bytes(self.end_tag.encode('utf-8')))
         print("发送结束标志成功。")
+        return " ".join(self.full_transcription)
 
     def recv(self):
         try:
@@ -82,14 +84,16 @@ class Client():
             for segment in words:
                 for word in segment.get("ws", []):
                     recognized_text = word.get("cw", [{}])[0].get("w", "")
-                    self.buffer += recognized_text  # 将识别到的文本拼接到缓冲区
-                    print(self.buffer)
+                    self.full_transcription.append(recognized_text)  # 保存转录结果
+                    print(recognized_text, end="", flush=True)  # 实时打印转录结果
         except Exception as e:
             print(f"解析数据时出错: {e}")
 
     def close(self):
+        self.is_recording = False  # 停止录音流
         self.ws.close()
         print("连接已关闭")
+
 
 if __name__ == '__main__':
     logging.basicConfig()

@@ -1,19 +1,29 @@
-from wake_word_detection import detect_wake_word
-from recognize_speech_mod import recognize_speech
-from service import get_response
-from text_to_speech import speak
+import wake_word_detection
+import recognize_speech_mod
+from service_mod import get_response
+from text_to_speech_mod import speak
 
 
 def main():
     while True:
-        wake_word_detected = detect_wake_word()
-        if wake_word_detected:
-            print("Trying to recognize speech...")
-            user_input = recognize_speech()
-            if user_input:
-                print(f"User: {user_input}")
-                response = get_response(user_input)
-                speak(response)
+        detector = wake_word_detection.Client()
+        try:
+            detector.send_audio_stream()
+        except KeyboardInterrupt:
+            print("Stopped by user.")
+        finally:
+            detector.close()
+
+        if detector.wake_word_detected:
+                print("Wake word detected!")
+                print("Trying to recognize speech...")
+                recognizer = recognize_speech_mod.Client()
+                user_input = recognizer.send_audio_stream()
+                recognizer.close()
+                if user_input:
+                    print(f"User's input: {user_input}")
+                    response = get_response(user_input)
+                    speak(response)
 
 
 if __name__ == "__main__":
