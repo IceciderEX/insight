@@ -98,8 +98,8 @@ class Client:
                 for word in segment.get("ws", []):
                     recognized_text = word.get("cw", [{}])[0].get("w", "")
                     self.buffer += recognized_text  # 拼接识别到的文本
-                    print(f"Partial recognition: {self.buffer}")
-                    if "床前明月光" in self.buffer:  # 修改为您的唤醒词
+                    print(f"Partial recognition results: {self.buffer}")
+                    if "你好" in self.buffer:  # 修改为您的唤醒词
                         print("Wake word detected!")
                         self.wake_word_detected = True
                         self.is_recording = False  # 停止录音
@@ -124,4 +124,4 @@ if __name__ == "__main__":
         client.close()
 
     if client.wake_word_detected:
-        print("Wake word '床前明月光' detected. Exiting.")
+        print("Wake word '你好' detected. Exiting.")
